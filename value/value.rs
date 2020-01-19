@@ -1,4 +1,4 @@
-fn main() {
+pub fn value() {
     println!("--- Step1 ---");
     // 変数新規作成
     // | id | value |
