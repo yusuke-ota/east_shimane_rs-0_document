@@ -333,8 +333,8 @@ str型とString型の違いって何？
 以下の実装を行う場合にはunsafeブロックで囲む必要がある
 
 - **生ポインタを参照外しする**
+- **可変のグローバル変数にアクセスしたり変更する**
 - unsafeな関数やメソッドを呼ぶ
-- **可変で静的な変数にアクセスしたり変更する**
 - unsafeなトレイトを実装する
 
 ---
@@ -349,6 +349,43 @@ str型とString型の違いって何？
 
 ### 所有権
 
+既存の変数を他の変数に代入したときに固定長か可変長かで動作が変わる
+
+```rust
+// &str型は固定長(= 変数はスタック領域)
+let fixed_length = "hello world!";
+let str_value = fixed_length;
+// OK
+assert_eq!(fixed_length, str_value);
+```
+
+```rust
+// String型は可変長(= 変数の本体はヒープ領域)
+let variable_length = "hello world!".to_string();
+let string_value = variable_length;
+// compile error
+// assert_eq!(variable_length, string_value)
+```
+
+---
+
+#### 図解 所有権1
+
+<!-- 固定長 -->
+
+---
+
+#### 図解 所有権2
+
+<!-- 可変長 -->
+
+---
+
+#### 図解 所有権3
+
+[所有権で解放後の変数へのアクセスを制限していることを説明するコード](
+https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=39dc9cf912897eade2aab167391ca7a5)
+
 ---
 
 ### 参照
@@ -357,13 +394,8 @@ str型とString型の違いって何？
 
 ### 可変の参照(mut)
 
----
-
-### 変数の型で参照時の挙動が違う！
-
-<!-- todo: 最適な位置へ移動 -->
-[所有権で解放後の変数へのアクセスを制限していることを説明するコード](
-https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=39dc9cf912897eade2aab167391ca7a5)
+- 2つ以上作れない
+- 不変参照が存在する場合は作れない(todo: 検証)
 
 ---
 
