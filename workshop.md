@@ -82,7 +82,7 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 ### デメリット
 
 - 所有権って何?(独自の概念)
-- クラスの書き方が独特(structから始める)
+- クラスのがない(structにメソッドを追加していく)
 - async/awaitの書き方が独特
 
 ---
@@ -281,7 +281,7 @@ Rustは型によって変数作成時の動きが違う
 
 #### 固定長3 すごく独特 スライス型
 
-|型名   |記号   |備考                                               |
+|型名   |記号   |備考            |
 |:--:   |:--:   |:--:           |
 |文字列  |str   |固定長の文字列 |
 |スライス|\| \| |               |
@@ -290,14 +290,36 @@ Rustは型によって変数作成時の動きが違う
 
 #### 可変長の配列
 
-|型名   |記号   |備考                                               |
-|:--:   |:--:   |:--:                                               |
+|型名   |記号   |備考                           |
+|:--:   |:--:   |:--:                           |
 |文字列|String |可変長の文字列                 |
 |配列型|Vec     |可変長の配列                   |
-||Box      ||
+|スマートポインタ|省略      |省略   |
+
+---
 
 ※注：書き方は似てるがVec型(ヒープ)と[]型(スタック)は違う
 <!-- todo: コード作成 -->
+```rust
+fn main(){
+    // 固定長
+    let mut fixed_vector = [1,2,3,4,5];
+    fixed_vector[2] = 0;
+    assert_eq!(fixed_vector, [1,2,0,4,5]);
+    // error: fixed_vectorは固定長
+    // fixed_vector << 6;
+}
+```
+
+```rust
+fn main(){
+    // 可変長
+    let mut variable_vector = vec![1,2,3,4,5];
+    fixed_vector[2] = 0;
+    fixed_vector << 6;
+    assert_eq!(fixed_vector, [1,2,0,4,5,6]);
+}
+```
 
 ---
 
@@ -342,8 +364,10 @@ str型とString型の違いって何？
 ### 所有権 大まかな考え方
 
 (ざっくり)
-所有権は変数の未定義動作や意図しない書き換えを防ぐための仕組み
+所有権は変数の未定義動作やデータの競合を防ぐ仕組み
 権利のある変数しか、値にアクセスできない
+
+(メモリ開放にも関係するが、ここでは割愛)
 
 ---
 
@@ -371,31 +395,66 @@ let string_value = variable_length;
 
 #### 図解 所有権1
 
-<!-- 固定長 -->
+<!-- 固定長 TODO: 図を追加 -->
+コードを書いている時点で、どのくらいメモリを使うかわかる
+-> 変数の中身(値)をコピーしても、想定外に時間がかかるなんてことないよね？
+-> 値がコピーされる (ディープコピー)
+
+スタック：　コピー(copy)
 
 ---
 
 #### 図解 所有権2
 
-<!-- 可変長 -->
+<!-- 可変長 TODO: 図を追加 -->
+コードを書いている時点で、どのくらいメモリを使うかわからない
+-> その変数の中身(値)が動画だったら、コピーに時間がかかるだろう！
+-> ヒープのアドレスがコピーされる(シャローコピー)
 
 ---
 
 #### 図解 所有権3
 
-[所有権で解放後の変数へのアクセスを制限していることを説明するコード](
-https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=39dc9cf912897eade2aab167391ca7a5)
+<!-- 可変長 TODO: 図を追加 -->
+
+---
+
+#### 図解 所有権4
+
+データ競合が起こる
+-> 古い方は使えないようにしよう
+
+ヒープ：　ムーブ(move)
+
+[所有権で解放後の変数へのアクセスを制限していることを説明するコード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=39dc9cf912897eade2aab167391ca7a5)
+
+---
+
+**代入するたびに、ムーブやコピーされるのはつらい**
 
 ---
 
 ### 参照
 
+- 読み取り専用のアクセス権
+
+読み取りだけなら、いくらでも作れる
+(書き込みが無いなら、データ競合は考えなくても良い)
+
+<!-- TODO:図を追加 -->
+
 ---
 
 ### 可変の参照(mut)
 
-- 2つ以上作れない
-- 不変参照が存在する場合は作れない(todo: 検証)
+- 読み書き可能なアクセス権
+
+書き込みがあるとデータ競合を考えなくてはならない
+-> 1人しかアクセスできなければ、データ競合を考えなくて良い
+-> 占有ロック(みたいなこと)しよう！
+
+2つ以上作れない
+不変参照が存在する場合は作れない(todo: 検証)
 
 ---
 
@@ -407,9 +466,38 @@ https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=39dc9cf9
 
 ### ≒スコープ
 
+ざっくりいうとスコープ
+
+long_lifetimeとshort_lifetimeはスコープの外れるタイミング(≒ライフタイム)が違う
+
+```rust
+fn main(){
+    let long_lifetime = 1;
+    {
+        let short_lifetime = 2;
+    } // ここでshort_lifetimeか開放される
+} // ここでlong_lifetimeか開放される
+```
+
 ---
 
 ### ライフタイム注釈
+
+```rust
+// error: 返り値が返った瞬間に力尽きる
+fn create_added_str(a: &str, b: &str) -> &str{
+    let new_str = a + b;
+    &new_str
+} // ここでnew_strのスコープが外れる(&new_strが無効になる)
+```
+
+```rust
+// // error: 返り値が返った瞬間に力尽きる todo:追記
+// fn create_added_str(a: &str, b: &str) -> &str{
+//     let new_str = a + b;
+//     &new_str
+// } // ここでnew_strのスコープが外れる(&new_strが無効になる)
+```
 
 ---
 
@@ -439,7 +527,9 @@ https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=39dc9cf9
 
 ### 構造体って何？
 
+(ざっくり)
 メソッドが持てない、**変数だけのクラス**
+
 上下のコードはほぼ等価
 
 ```rust
@@ -472,10 +562,10 @@ class Vector2 {
 
 ```rust
 struct Vector2 {
-// 省略
+    // 省略
 }
 impl Vector2 { // Vector2に組み込むという意味
-    // 別に関数名はnewでなくても良い buildでもhogehogeでも
+    // 別にメソッド名はnewでなくても良い buildでもhogehogeでも
     fn new(x_pos: f64, y_pos: f64) -> Self{
         Self {
             x: x_pos,
@@ -497,7 +587,7 @@ impl Vector2 { // Vector2に組み込むという意味
 例(C#)
 
 ```C#
-// C#のhttpClientの宣言
+// C#のHttpClientの宣言
 HttpClient httpClient = new HttpClient();
     ↑Self       ↑self    ↑ HtmlClient::new()
 ```
@@ -523,7 +613,6 @@ impl AreaCalculable for Vector2 {
 
 impl AreaCalculable for Circle {
 // 省略
-}
 ```
 
 [全コード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=79688fcc8d8d56423cd074e6a3110612)
