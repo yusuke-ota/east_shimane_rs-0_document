@@ -1,5 +1,7 @@
 ---
 marp: true
+theme: gaia
+paginate: true
 ---
 
 # (Rubist向け)Rust勉強会資料
@@ -8,7 +10,7 @@ marp: true
 
 ~~みんなこの沼に落ちろ~~
 ~~Rust強くなって私に教えて~~
-Rustの独特な部分をざくっと説明して、入門コストを下げるぞー  
+Rustの独特な部分をざくっと説明して、入門コストを下げるぞー
 
 ### 発表者
 
@@ -18,24 +20,24 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 
 ## 参考文献
 
-- プログラミング言語 Rust, 2nd Edition 日本語訳  
-    <https://doc.rust-jp.rs/book/second-edition/>  
+* プログラミング言語 Rust, 2nd Edition 日本語訳
+    <https://doc.rust-jp.rs/book/second-edition/>
     注: 2018年6月ごろの英語版(Rust2015版)ベースのため内容が少し古い
 
-- 実践Rust入門  
-    一言でいうと、たのしいRubyみたいな本  
+* 実践Rust入門  
+    一言でいうと、たのしいRubyみたいな本
     プログラミング言語 Rust, 2nd Editionの次に読むと良い
 
 ---
 
 ## 目次
 
-- Rustの特徴(3分)
-- 変数(12分)
+* Rustの特徴(3分)
+* 変数(12分)
   <!-- - ミュータブル?イミュータブル?
   - シャドーイング
   - 演習 -->
-- 型
+* 型
   <!-- - 一覧(固定長？可変長？)
   - メモリ上のふるまい
   - オリジナルな型 -->
@@ -44,26 +46,26 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 
 <!-- ## 目次 2 -->
 
-- 所有権
+* 所有権
   <!-- - 大まかな考え方
   - 所有権
   - 参照
   - 参照(mut) -->
-- 基本構文
+* 基本構文
 
 <!-- --- -->
 
 <!-- ## 目次 3 -->
 
-- ライフタイム
+* ライフタイム
   <!-- - ≒スコープ
   - ライフタイム注釈 -->
-- エラー処理
+* エラー処理
   <!-- - panic!
   - Result型、Option型
   - パターンマッチ -->
 
-- 構造体(struct)
+* 構造体(struct)
 
 ---
 
@@ -71,9 +73,10 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 
 ### メリット
 
-- GCがないから、速い
-- 非同期処理が安心して書ける
-- FFIでRubyから簡単に呼べる
+* GCがないから、速い
+* GCがないから、OSが無くても動く
+* データ競合がないから非同期処理が安心して書ける
+* FFIでRubyから簡単に呼べる
 
 ---
 
@@ -81,9 +84,10 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 
 ### デメリット
 
-- 所有権って何?(独自の概念)
-- クラスのがない(structにメソッドを追加していく)
-- async/awaitの書き方が独特
+* 所有権って何?(独自の概念)
+* クラスのがない(structにメソッドを追加していく)
+* (オブジェクト指向の人は) 関数型
+* async/awaitの書き方が独特
 
 ---
 
@@ -96,6 +100,13 @@ Rustの変数は基本再代入不可
 
 1. 可変変数として宣言する
 2. 同じ名前の別の変数を新規作成する
+
+---
+
+### 変数 in Rust
+
+Rustでは変数のことを
+**変数束縛**と呼ぶ
 
 ---
 
@@ -166,53 +177,53 @@ fn main(){
 
 ### どんな違いがあるのか
 
-- ミュータブル mut
+* ミュータブル mut
   変数の値を書き換える
 
-- シャドーイング let
+* シャドーイング let
   同名の別の変数を作成する
 
 ---
 
 #### ミュータブル mut 1
 
-![ミュータブル mut 1](./pictures/変数/mut1.jpg)
+![h:13cm ミュータブル mut 1](./pictures/変数/mut1.jpg)
 
 ---
 
 #### ミュータブル mut 2
 
-![ミュータブル mut 2](./pictures/変数/mut2.jpg)
+![h:13cm ミュータブル mut 2](./pictures/変数/mut2.jpg)
 
 ---
 
 #### ミュータブル mut 3
 
-![ミュータブル mut 3](./pictures/変数/mut3.jpg)
+![h:13cm ミュータブル mut 3](./pictures/変数/mut3.jpg)
 
 ---
 
 #### シャドーイング let 1
 
-![シャドーイング let 1](./pictures/変数/let1.jpg)
+![h:13cm シャドーイング let 1](./pictures/変数/let1.jpg)
 
 ---
 
 #### シャドーイング let 2
 
-![シャドーイング let 2](./pictures/変数/let2.jpg)
+![h:13cm シャドーイング let 2](./pictures/変数/let2.jpg)
 
 ---
 
 #### シャドーイング let 3
 
-![シャドーイング let 3](./pictures/変数/let3.jpg)
+![h:13cm シャドーイング let 3](./pictures/変数/let3.jpg)
 
 ---
 
 #### シャドーイング let 4
 
-![シャドーイング let 4](./pictures/変数/let4.jpg)
+![h:13cm シャドーイング let 4](./pictures/変数/let4.jpg)
 
 ---
 
@@ -273,7 +284,7 @@ Rustは型によって変数作成時の動きが違う
 |型名   |記号   |備考                                               |
 |:--:   |:--:   |:--:                                               |
 |論理値型|bool  |true, false                                        |
-|文字型 |char   |ユニコードスカラー値(U+0000~U+D7FF, U+E000~U+10FFFF)|
+|文字型 |char   |ユニコードスカラー値 (U+0000~U+D7FF, U+E000~U+10FFFF)|
 |タプル型|( )   |読み取り専用の配列のようなもの                         |
 |配列型 |[ ]    |初期化時の配列の長さから変更不可(固定長配列)           |
 
@@ -281,33 +292,33 @@ Rustは型によって変数作成時の動きが違う
 
 #### 固定長3 すごく独特 スライス型
 
-|型名   |記号   |備考            |
-|:--:   |:--:   |:--:           |
-|文字列  |str   |固定長の文字列 |
-|スライス|\| \| |               |
+|型名   |記号   |備考                                    |
+|:--:   |:--:   |:--:                                   |
+|文字列  |str   |固定長の文字列、ほとんどの場合&strで登場  |
+|スライス|\| \| |                                       |
 
 ---
 
 #### 可変長の配列
 
-|型名   |記号   |備考                           |
-|:--:   |:--:   |:--:                           |
-|文字列|String |可変長の文字列                 |
-|配列型|Vec     |可変長の配列                   |
+|型名   |記号   |備考              |
+|:--:   |:--:   |:--:              |
+|文字列 |String |可変長の文字列     |
+|配列型 |Vec     |可変長の配列      |
 |スマートポインタ|省略      |省略   |
 
 ---
 
-※注：書き方は似てるがVec型(ヒープ)と[]型(スタック)は違う
-<!-- todo: コード作成 -->
+※注：書き方は似てるがVec型(可変長)と[]型(固定長)は違う
+
 ```rust
 fn main(){
     // 固定長
     let mut fixed_vector = [1,2,3,4,5];
     fixed_vector[2] = 0;
     assert_eq!(fixed_vector, [1,2,0,4,5]);
-    // error: fixed_vectorは固定長
-    // fixed_vector << 6;
+    // error: fixed_vectorはpush()が実装されてない(固定長)
+    // fixed_vector.push(6);
 }
 ```
 
@@ -315,9 +326,9 @@ fn main(){
 fn main(){
     // 可変長
     let mut variable_vector = vec![1,2,3,4,5];
-    fixed_vector[2] = 0;
-    fixed_vector << 6;
-    assert_eq!(fixed_vector, [1,2,0,4,5,6]);
+    variable_vector[2] = 0;
+    variable_vector.push(6);
+    assert_eq!(variable_vector, [1,2,0,4,5,6]);
 }
 ```
 
@@ -339,8 +350,8 @@ str型とString型の違いって何？
 
 所有権システムの働き
 
-- 不正な値の変数を許さない (解放済みの変数、値の入っていない変数etc.)
-- 変数の整合性を保証するため、ロックをかける ~~(DBかよ)~~
+* 不正な値の変数を許さない (解放済みの変数、値の入っていない変数etc.)
+* 変数の整合性を保証するため、ロックをかける ~~(DBかよ)~~
 
 ---
 
@@ -354,10 +365,26 @@ str型とString型の違いって何？
 
 以下の実装を行う場合にはunsafeブロックで囲む必要がある
 
-- **生ポインタを参照外しする**
-- **可変のグローバル変数にアクセスしたり変更する**
-- unsafeな関数やメソッドを呼ぶ
-- unsafeなトレイトを実装する
+* **生ポインタを参照外しする**
+  生ポインタ: Cでいうポインタ
+  参照外し: ポインタの参照先の値を直接読み取ること
+* **可変のグローバル変数にアクセスしたり変更する**
+* unsafeな関数やメソッドを呼ぶ
+* unsafeなトレイトを実装する
+  トレイト: Rustで使う、インターフェースみたいなもの
+
+---
+
+### つまり
+
+Rustは
+
+* 中身の保証されていないポインタの参照外し
+* 無秩序なデータ書き換え
+
+がunsafeだと考えている。
+
+そのための**所有権システム**
 
 ---
 
@@ -367,7 +394,7 @@ str型とString型の違いって何？
 所有権は変数の未定義動作やデータの競合を防ぐ仕組み
 権利のある変数しか、値にアクセスできない
 
-(メモリ開放にも関係するが、ここでは割愛)
+(メモリ解放にも関係するが、ここでは割愛)
 
 ---
 
@@ -408,8 +435,9 @@ let string_value = variable_length;
 
 <!-- 可変長 TODO: 図を追加 -->
 コードを書いている時点で、どのくらいメモリを使うかわからない
--> その変数の中身(値)が動画だったら、コピーに時間がかかるだろう！
+-> その変数の中身(値)が動画だったら、コピーに時間がかかるだろう
 -> ヒープのアドレスがコピーされる(シャローコピー)
+-> 参照カウンターはGCがいるから、コピー元は使用禁止ね
 
 ---
 
@@ -421,22 +449,23 @@ let string_value = variable_length;
 
 #### 図解 所有権4
 
-データ競合が起こる
--> 古い方は使えないようにしよう
+一つのヒープ上の値に対して、
+複数のスタック上の変数を割り当てると
+GCが必要になる
 
-ヒープ：　ムーブ(move)
+ヒープ： ムーブ(move)
 
-[所有権で解放後の変数へのアクセスを制限していることを説明するコード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=39dc9cf912897eade2aab167391ca7a5)
+[所有権で解放後の変数へのアクセスを制限していることを説明するコード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=99c3f2da10dbca4c3c7cf1c7d97491b0)
 
 ---
 
-**代入するたびに、ムーブやコピーされるのはつらい**
+でも**代入するたびに、ムーブやコピーされるのはつらい**
 
 ---
 
 ### 参照
 
-- 読み取り専用のアクセス権
+≒ 読み取り専用のアクセス権
 
 読み取りだけなら、いくらでも作れる
 (書き込みが無いなら、データ競合は考えなくても良い)
@@ -447,14 +476,16 @@ let string_value = variable_length;
 
 ### 可変の参照(mut)
 
-- 読み書き可能なアクセス権
+≒ 読み書き可能なアクセス権
 
 書き込みがあるとデータ競合を考えなくてはならない
 -> 1人しかアクセスできなければ、データ競合を考えなくて良い
 -> 占有ロック(みたいなこと)しよう！
 
-2つ以上作れない
-不変参照が存在する場合は作れない(todo: 検証)
+* 2つ以上作れない
+* 不変参照が存在する場合は作れない
+
+[不変参照と可変参照は共存不可](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=ba1b4fa8f92a8c738ea2ba7dcb72b1dd)
 
 ---
 
@@ -464,19 +495,19 @@ let string_value = variable_length;
 
 ## ライフタイム
 
-### ≒スコープ
-
-ざっくりいうとスコープ
-
-long_lifetimeとshort_lifetimeはスコープの外れるタイミング(≒ライフタイム)が違う
+参照が参照先より長生きするのを防ぐ仕組み
+これが無いと、解放後のメモリにアクセスしてしまう
 
 ```rust
 fn main(){
-    let long_lifetime = 1;
+    let long_lifetime;
     {
         let short_lifetime = 2;
-    } // ここでshort_lifetimeか開放される
-} // ここでlong_lifetimeか開放される
+        long_lifetime = &short_lifetime;
+    } // ここでshort_lifetimeか解放される
+    // compile error: 解放されたshort_lifetimeにアクセスする
+    // println!("{}", long_lifetime);
+} // ここでlong_lifetimeか解放される
 ```
 
 ---
@@ -484,19 +515,35 @@ fn main(){
 ### ライフタイム注釈
 
 ```rust
-// error: 返り値が返った瞬間に力尽きる
-fn create_added_str(a: &str, b: &str) -> &str{
-    let new_str = a + b;
-    &new_str
-} // ここでnew_strのスコープが外れる(&new_strが無効になる)
+// compile error: 返り値がいつまで使われるのか分からない
+fn compare_str_lenght(a: &str, b: &str) -> &str{
+    if a.len() >= b.len()　{
+        a
+    } else {
+        b
+    }
+}
 ```
 
 ```rust
-// // error: 返り値が返った瞬間に力尽きる todo:追記
-// fn create_added_str(a: &str, b: &str) -> &str{
-//     let new_str = a + b;
-//     &new_str
-// } // ここでnew_strのスコープが外れる(&new_strが無効になる)
+// OK: 返り値は'a(a,b)と同じだけの生存しなければならない
+fn compare_str_lenght<'a>(a: &'a str, b: &'a str) -> &'a str{
+    // 省略
+}
+```
+
+---
+
+### 変数と参照のライフタイム
+
+// todo: 追記
+
+```rust
+fn main(){
+    let value = 10;
+    let ref_value = &value;
+}
+
 ```
 
 ---
@@ -505,13 +552,60 @@ fn create_added_str(a: &str, b: &str) -> &str{
 
 ### panic!
 
+プログラムを異常終了させるためのマクロ
+
+```rust
+fn main(){
+    print!("hello");
+    panic!();
+    print!("world"); // ここにはたどり着けない
+}
+```
+
+[Rust Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=99f97f587da0ca0f9f5f87f3de4cc655)
+
 ---
 
 ### Result型、Option型
 
+[Result型](https://doc.rust-lang.org/std/result/enum.Result.html): エラーになりうる結果を返す時に使う
+
+```rust
+pub enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+```
+
+[Option型](https://doc.rust-lang.org/std/option/enum.Option.html): 他言語で言う、Nullになりうる結果を返す時に使う
+
+```rust
+pub enum Option<T> {
+    None,
+    Some(T),
+}
+```
+
 ---
 
 ### パターンマッチ
+
+Result型やOption型はそのままでは使えない
+パターンマッチで、中身を取り出す
+unwrap()は非推奨
+
+```rust
+fn main(){
+    use std::convert::TryFrom;
+    let value = u32::try_from(-1); // キャストは失敗するかもしれないのでResult型
+    match value{
+        Ok(x) => println!("{}", x),
+        Err(x) => println!("{}", x),
+    }
+}
+```
+
+[Rust Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=227c23cf9f037e677d674c519f18e166)
 
 ---
 
@@ -519,18 +613,15 @@ fn create_added_str(a: &str, b: &str) -> &str{
 
 ### 構造体(struct) 結論
 
-- 構造体≒変数のみクラス
-- 構造体にメソッドを組み込んでクラスの代わりにする
-- もちろんインターフェースも使える
+* 構造体≒変数のみクラス
+* 構造体にメソッドを組み込んでクラスの代わりにする
+* インターフェースも使える
 
 ---
 
 ### 構造体って何？
 
-(ざっくり)
-メソッドが持てない、**変数だけのクラス**
-
-上下のコードはほぼ等価
+(ざっくり)メソッドが持てない、**変数だけのクラス**
 
 ```rust
 // rust
@@ -561,9 +652,7 @@ class Vector2 {
 ### new、halfメソッド実装例
 
 ```rust
-struct Vector2 {
-    // 省略
-}
+struct Vector2 { /* 省略 */ }
 impl Vector2 { // Vector2に組み込むという意味
     // 別にメソッド名はnewでなくても良い buildでもhogehogeでも
     fn new(x_pos: f64, y_pos: f64) -> Self{
@@ -584,7 +673,9 @@ impl Vector2 { // Vector2に組み込むという意味
 
 ### Selfとselfって何が違うの?
 
-例(C#)
+Selfは型、selfは変数(メソッドの対象)
+
+C#で例えると
 
 ```C#
 // C#のHttpClientの宣言
@@ -600,7 +691,6 @@ HttpClient httpClient = new HttpClient();
 struct Vector2{x: f64, y: f64}
 struct Circle{r: f64}
 
-// ≒インターフェース
 trait AreaCalculable{
     fn calc_area(&self) -> f64;
 }
@@ -610,9 +700,7 @@ impl AreaCalculable for Vector2 {
         &self.x * &self.y
     }
 }
-
-impl AreaCalculable for Circle {
-// 省略
+impl AreaCalculable for Circle {// 省略
 ```
 
 [全コード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=79688fcc8d8d56423cd074e6a3110612)
