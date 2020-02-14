@@ -261,7 +261,7 @@ Rustは型によって変数作成時の動きが違う
 |論理値型|bool  |true, false                                        |
 |文字型 |char   |ユニコードスカラー値 (U+0000~U+D7FF, U+E000~U+10FFFF)|
 |タプル型|( )   |複数の型を設定可 ex: (a:i32, b: f64, c: bool)         |
-|配列型 |[ ]    |初期化時の配列の長さから変更不可(固定長配列)           |
+|配列型 |[T;N]    |初期化時の配列の長さから変更不可(固定長配列)           |
 
 ---
 
@@ -375,24 +375,23 @@ Rustは
 
 ### 所有権
 
-既存の変数を他の変数に代入したときに固定長か可変長かで動作が変わる
-
-// todo: vec!に書き換え
+既存の変数を他の変数に代入したとき
+**固定長**か**可変長**かで動作が変わる
 
 ```rust
-// &str型は固定長(= 変数はスタック領域)
-let fixed_length = "hello world!";
-let str_value = fixed_length;
-// OK: fixed_lengthはstr_valueにコピーされる
-assert_eq!(fixed_length, str_value);
+// [i32; 5]型は固定長(= 変数はスタック領域)
+let fixed_array = [0,1,2,3,4];
+let array = fixed_array;
+// OK: fixed_arrayはarrayにコピーされる
+assert_eq!(fixed_array, array);
 ```
 
 ```rust
-// String型は可変長(= 変数の本体はヒープ領域)
-let variable_length = "hello world!".to_string();
-let string_value = variable_length;
-// compile error: string_valueの中身はvariable_lengthに移される
-// assert_eq!(variable_length, string_value)
+// Vec<i32>型は可変長(= 変数の本体はヒープ領域)
+let variable_array = vec![0,1,2,3,4];
+let array = variable_array;
+// compile error: variable_arrayの中身はarrayに移される
+// assert_eq!(variable_array, array);
 ```
 
 ---
@@ -529,7 +528,7 @@ fn main() {
 
 |型名   |記号   |備考                                    |
 |:--:   |:--:   |:--:                                   |
-|スライス|\| \| |範囲を表す型、ほとんどの場合&\| \|で登場  |
+|スライス|[T]  |範囲を表す型、ほとんどの場合&[T]で登場  |
 |文字列  |str   |文字列用のスライス、ほとんどの場合&strで登場  |
 
 ```rust
@@ -735,9 +734,22 @@ class Vector2 {
 
 ### お前のメソッド実装はおかしい
 
-すでにある構造体(struct)に
-メソッド(fn)を
-組み込む(impl)
+値(構造体)に関数を実装する
+
+**基本形**
+
+```rust
+struct StructA { /* 構造体 */ }
+
+impl TraitA for StructA{
+    fn functionA() { /* 関数 */ }
+}
+
+impl TraitB for StructA{
+    fn functionB() { /* 関数 */ }
+    fn functionC() { /* 関数 */ }
+}
+```
 
 ---
 
@@ -814,16 +826,30 @@ impl AreaCalculable for Circle {// 省略
 
 ### 並列、並行処理
 
-この2つにコード上の大きな違いはありません
-
-// todo: コード作成
+#### 簡単な例
 
 ```rust
-// この辺使う
-let palarell_handle = thread.spawn(||)
-palarell_handle.join().unwrap();
-channel
+use std::thread;
+fn main(){
+    let vec4 = vec![0, 1, 2, 3];
+    let palarell_handle = thread::spawn(move || { // vec4がmoveする
+        println!("{:?}", vec4);
+        vec4　// vec4を返さないとこのスレッド内でvec4が解放される
+    });
+
+    // ここでスレッドから帰ってきたvec4の所有権を受け取る
+    match palarell_handle.join(){ // .join()でスレッドの終了を待つ
+        Ok(vec4) => println!("{:?}", vec4), // 無事、中身を取り出すことができる
+        Err(e) => println!("{:?}", e), // スレッド内でエラーが起こることもある
+    };
+}
 ```
+
+---
+
+#### 複雑な例
+
+// todo: コード作成
 
 ---
 
@@ -832,16 +858,25 @@ channel
 非同期処理のランタイムのデファクトスタンダードはまだありません。
 (tokio vs async-std)
 
-async-stdはまだ開発中のようなので、しばらくはtokio
+tokio: 非同期で現在よく使われている
+async-std: stdをそのまま置き換えられる(らしい) 開発中
 
 // todo: 追記
+
+---
+
+### データ競合
+
+Rustでは**起きない**
+
+// todo: 図解
 
 ---
 
 ### デッドロック
 
 Mutexを使用するとデッドロックを起こすことがある
-// todo: 追記
+// todo: 図解
 
 ---
 
@@ -867,3 +902,12 @@ pub extern fn call_rust(){
     println!("this is Rust!!");
 }
 ```
+
+---
+
+## I need more speed
+
+### SIMD
+
+基本リリースコンパイルでSIMD化される
+もっと速度が欲しい場合// todo: 追記
