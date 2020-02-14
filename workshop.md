@@ -40,6 +40,7 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 * エラー処理
 * 構造体(struct)
 * 並列,並行,非同期
+* FFI
 
 ---
 
@@ -264,15 +265,6 @@ Rustは型によって変数作成時の動きが違う
 
 ---
 
-#### 固定長3 すごく独特 スライス型
-
-|型名   |記号   |備考                                    |
-|:--:   |:--:   |:--:                                   |
-|文字列  |str   |固定長の文字列、ほとんどの場合&strで登場  |
-|スライス|\| \| |範囲を表す型、ほとんどの場合&\| \|で登場  |
-
----
-
 #### 可変長の配列
 
 |型名   |記号   |備考              |
@@ -305,14 +297,6 @@ fn main(){
     assert_eq!(variable_vector, [1,2,0,4,5,6]);
 }
 ```
-
----
-
-### メモリ上のふるまい
-
-str型とString型の違いって何？
-
-// todo: 追記
 
 ---
 
@@ -393,11 +377,13 @@ Rustは
 
 既存の変数を他の変数に代入したときに固定長か可変長かで動作が変わる
 
+// todo: vec!に書き換え
+
 ```rust
 // &str型は固定長(= 変数はスタック領域)
 let fixed_length = "hello world!";
 let str_value = fixed_length;
-// OK
+// OK: fixed_lengthはstr_valueにコピーされる
 assert_eq!(fixed_length, str_value);
 ```
 
@@ -405,7 +391,7 @@ assert_eq!(fixed_length, str_value);
 // String型は可変長(= 変数の本体はヒープ領域)
 let variable_length = "hello world!".to_string();
 let string_value = variable_length;
-// compile error
+// compile error: string_valueの中身はvariable_lengthに移される
 // assert_eq!(variable_length, string_value)
 ```
 
@@ -416,7 +402,7 @@ let string_value = variable_length;
 <!-- 固定長 TODO: 図を追加 -->
 コードを書いている時点で、どのくらいメモリを使うかわかる
 -> 変数の中身(値)をコピーしても、想定外に時間がかかるなんてことないよね？
--> 値がコピーされる (ディープコピー)
+-> 値がコピーされる
 
 スタック： コピー(copy)
 
@@ -473,6 +459,26 @@ fn plus_one(mut input: i32){ // aとは別のinputが生成される
 
 ---
 
+#### (つらい)C#で書くとこう
+
+```csharp
+using System;
+public class C {
+    public static void Main() {
+        var num = 1;
+        PlusOne(num);
+        Console.WriteLine(num); // => 1
+    }
+    static void PlusOne(int input){ // ここでinputにコピーされる
+        input += 1;
+    }
+}
+```
+
+[Sharp Lab](https://sharplab.io/#v2:EYLgxg9gTgpgtADwGwBYA0AXEUCuA7NAExAGoAfAAQCYBGAWACgKBmAAmtYGFWBvR1geypVe/QeIBuAQyis8OALasAvKxoBuMeIEAFADY4AzgHk8MABTyFASk0NtgijQCclxba2sAvp4AOUAEtpDBh2GiR2FFZ9I1MLALwMVgTfHAxrPnsHZLxUpJJVDU8fBhKgA)
+
+---
+
 ### 参照
 
 ≒ 読み取り専用のアクセス権
@@ -496,6 +502,67 @@ fn plus_one(mut input: i32){ // aとは別のinputが生成される
 * 不変参照が存在する場合は作れない
 
 [不変参照と可変参照は共存不可](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=ba1b4fa8f92a8c738ea2ba7dcb72b1dd)
+
+---
+
+### (参照)注意
+
+貸し出している状態で、元の所有者が変化を加えられる分けないよね
+
+=> 参照がある場合、**参照を通さない**参照先の変数の変更はできない
+
+```rust
+fn main() {
+    let mut num = 1;
+    let ref_num = &num;
+    num = 2;
+    // compile error: ref_numが所有権を借りているのに、numを書き換えている
+    // println!("{}", ref_num); // ref_numはここまで生きる
+}
+```
+
+[Rust Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=213547976ff9977e117d3360326e940e)
+
+---
+
+### 配列の一部参照 スライス型
+
+|型名   |記号   |備考                                    |
+|:--:   |:--:   |:--:                                   |
+|スライス|\| \| |範囲を表す型、ほとんどの場合&\| \|で登場  |
+|文字列  |str   |文字列用のスライス、ほとんどの場合&strで登場  |
+
+```rust
+fn main(){
+    let fixed_array = [0, 1, 2, 3, 4];
+    let ref_array_one_three = &fixed_array[1..4]; // 配列の一部を参照
+    println!("{:?}", ref_array_one_three);
+}
+```
+
+---
+
+#### str型とString型の違いって何？
+
+**String型**
+ヒープへの参照と、ヒープ上に確保した文字列(参照先)
+
+**str型**
+文字列への範囲付き参照
+参照先が別に必要
+
+参照先:
+`String`型
+UTF-8バイト列`[u8; n]`, `Vec<u8>`
+インライン文字列 `"サンプル"`
+
+---
+
+#### 図解str
+
+// todo: 図解
+
+[mut Stringのヒープをstrからいじったらどうなるのか](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=c1951925718bfe7260f315f706077830)
 
 ---
 
@@ -775,3 +842,28 @@ async-stdはまだ開発中のようなので、しばらくはtokio
 
 Mutexを使用するとデッドロックを起こすことがある
 // todo: 追記
+
+---
+
+## FFI
+
+FFI: Foreign function interface
+他言語から、関数やメソッドを呼び出す機構(Wikipedia)
+
+RubyからFFI経由でRustの関数を呼んだりできる
+メリット: 特定の処理をメソッドレベルでRustに置き換えられる
+
+C#はdllimportで呼んで
+
+---
+
+### FFI使い方
+
+関数の前に`[no_mangle]`をつける
+
+```rust
+[no_mangle]
+pub extern fn call_rust(){
+    println!("this is Rust!!");
+}
+```
