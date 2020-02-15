@@ -535,7 +535,7 @@ fn main() {
 fn main(){
     let fixed_array = [0, 1, 2, 3, 4];
     let ref_array_one_three = &fixed_array[1..4]; // 配列の一部を参照
-    println!("{:?}", ref_array_one_three);
+    assert_eq!([1, 2, 3], ref_array_one_three);
 }
 ```
 
@@ -635,7 +635,74 @@ fn compare_str_lenght<'a>(a: &'a str, b: &'a str) -> &'a str{
 
 ## 基本構文
 
-// todo:追記
+### if
+
+if **真/偽** { }
+
+```rust
+fn main(){
+    let boolen = true;
+    if boolen { // bool型(真偽値)のみを取る
+        println!("true");
+    } else {
+        println!("false");
+    }
+}
+```
+
+---
+
+### let if
+
+条件分岐で初期化する値を変えることもできる
+
+```rust
+fn main() {
+    let boolen = 1 < 0;
+    let boolen_str = if boolen {
+        "true" // ここと
+    } else {
+        "false" // ここは同じ型
+    };
+    assert_eq!("false", boolen_str);
+}
+```
+
+---
+
+### loop, while
+
+loop: 無限ループ
+while: 条件付きループ
+
+```rust
+fn main(){
+    let mut counter = 1;
+    loop {
+        println!("this is {}.", counter);
+        if counter >= 20 {break;}
+        counter += 1;
+    }
+    while counter < 30 {
+        counter += 1;
+        println!("this is {}.", counter);
+    }
+}
+```
+
+---
+
+### for
+
+```rust
+fn main() {
+    let valiable_array = vec![0, 1, 2, 3, 4];
+    // [].iter()でそれぞれの要素のスライスを生成する
+    for value in valiable_array.iter(){
+        println!("{}", value);
+    }
+}
+```
 
 ---
 
@@ -691,7 +758,7 @@ fn main(){
     let value = u32::try_from(-1); // キャストは失敗するかもしれないのでResult型
     match value{
         Ok(x) => println!("{}", x),
-        Err(x) => println!("{}", x),
+        Err(_) => println!("_:闇に飲まれよ"),
     }
 }
 ```
@@ -745,7 +812,7 @@ impl TraitA for StructA{
     fn functionA() { /* 関数 */ }
 }
 
-impl TraitB for StructA{
+impl TraitB for StructA{ // 複数のトレイトを組み込むことも可
     fn functionB() { /* 関数 */ }
     fn functionC() { /* 関数 */ }
 }
@@ -821,6 +888,8 @@ impl AreaCalculable for Circle {// 省略
 
 並列処理が並行処理になる境
 <= 論理プロセッサー数
+
+並列処理ライブラリRayonとか良さげ
 
 ---
 
