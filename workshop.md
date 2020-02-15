@@ -697,8 +697,7 @@ fn main(){
 ```rust
 fn main() {
     let valiable_array = vec![0, 1, 2, 3, 4];
-    // [].iter()でそれぞれの要素のスライスを生成する
-    for value in valiable_array.iter(){
+    for value in &valiable_array {
         println!("{}", value);
     }
 }
