@@ -23,13 +23,15 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
     <https://doc.rust-jp.rs/book/second-edition/>
     注: 2018年6月ごろの英語版(Rust2015版)ベースのため内容が少し古い
 
-* 実践Rust入門  
-    一言でいうと、たのしいRubyみたいな本
+* 実践Rust入門
+    Rust初心者向けの入門書(**内容がすごく重い**)
     プログラミング言語 Rust, 2nd Editionの次に読むと良い
 
 ---
 
 ## 目次
+
+### ざっくりRust
 
 * Rustの特徴(3分)
 * 変数(12分)
@@ -39,7 +41,14 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 * 基本構文
 * エラー処理
 * 構造体(struct)
+
+---
+
+### (希望があれば)プラスα
+
 * 並列,並行,非同期
+* パッケージマネージャーCargo
+* 用語説明
 * FFI
 
 ---
@@ -62,7 +71,7 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 * 所有権って何?(独自の概念)
 * クラスのがない(structにメソッドを追加していく)
 * (オブジェクト指向の人は) 関数型
-* async/awaitの書き方が独特
+* 非同期関連(not並列、並行)が未成熟
 
 ---
 
@@ -247,7 +256,7 @@ Rustは型によって変数作成時の動きが違う
 |32bit              |**i32**|u32        |f32    |
 |64bit              |i64    |u64        |**f64**|
 |128bit             |i128   |u128       |無し   |
-|アーキテクチャ依存   |isize |usize     |無し     |
+|アーキテクチャ依存   |isize |usize     |無し   |
 
 整数型はi32、浮動小数点型はf64推奨
 出典：[プログラミング言語 Rust, 2nd Edition データ型](https://doc.rust-jp.rs/book/second-edition/ch03-02-data-types.html)
@@ -256,12 +265,12 @@ Rustは型によって変数作成時の動きが違う
 
 #### 固定長2 論理値型、文字型、タプル型、配列型
 
-|型名   |記号   |備考                                               |
-|:--:   |:--:   |:--:                                               |
-|論理値型|bool  |true, false                                        |
-|文字型 |char   |ユニコードスカラー値 (U+0000~U+D7FF, U+E000~U+10FFFF)|
-|タプル型|( )   |複数の型を設定可 ex: (a:i32, b: f64, c: bool)         |
-|配列型 |[T;N]    |初期化時の配列の長さから変更不可(固定長配列)           |
+|型名   |記号   |備考                                                   |
+|:--:   |:--:   |:--:                                                   |
+|論理値型|bool  |true, false                                            |
+|文字型 |char   |ユニコードスカラー値 (U+0000~U+D7FF, U+E000~U+10FFFF)  |
+|タプル型|( )   |複数の型を設定可 ex: (a:i32, b: f64, c: bool)          |
+|配列型 |[T;N]    |初期化時の配列の長さから変更不可(固定長配列)         |
 
 ---
 
@@ -269,13 +278,13 @@ Rustは型によって変数作成時の動きが違う
 
 |型名   |記号   |備考              |
 |:--:   |:--:   |:--:              |
-|文字列 |String |可変長の文字列     |
-|配列型 |Vec     |可変長の配列      |
-|スマートポインタ|省略      |省略   |
+|文字列 |String |可変長の文字列    |
+|配列型 |Vec<T>  |可変長の配列     |
+|スマートポインタ|省略      |省略  |
 
 ---
 
-※注：書き方は似てるがVec型(可変長)と[]型(固定長)は違う
+※注：書き方は似てるが`Vec<T>`型(可変長)と`[T;N]`型(固定長)は違う
 
 ```rust
 fn main(){
@@ -915,21 +924,55 @@ fn main(){
 
 ---
 
-#### 複雑な例
+### 非同期処理
 
-// todo: コード作成
+非同期処理のランタイムのデファクトスタンダードはまだない
+(tokio vs async-std)
+
+tokio: 非同期で現在よく使われている(らしい)
+async-std: stdをそのまま置き換えられる(らしい) 開発中
+
+```rust
+use tokio; // 0.2.11
+#[tokio::main]
+async fn main() {
+    let handler = print_message_async("message async"); // 返り値がある場合は、handlerに代入される
+    println!("message main");
+    handler.await; // 完了待ち and 結果取得
+}
+async fn print_message_async(message: &str){
+    println!("{}", message);
+}
+```
 
 ---
 
-### 非同期処理
+### スレッド間のデータ共有
 
-非同期処理のランタイムのデファクトスタンダードはまだありません。
-(tokio vs async-std)
+[Arc<Mutex<T>>](https://doc.rust-jp.rs/book/second-edition/ch16-03-shared-state.html), [mpsc](https://doc.rust-jp.rs/book/second-edition/ch16-02-message-passing.html)を使う
 
-tokio: 非同期で現在よく使われている
-async-std: stdをそのまま置き換えられる(らしい) 開発中
 
-// todo: 追記
+<!-- ```rust
+// Arc<Mutex<T>>
+use std::sync::{Mutex, Arc};
+use std::thread;
+fn main(){
+    let share_number = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+    for index in 0..10{
+        let share_number = Arc::clone(&share_number);
+        let handle = thread::spawn(move || {
+            let mut num = share_number.lock().unwrap();
+            *num += index;
+        });
+        handles.push(handle);
+    }
+    for handle in handles{
+        handle.join().unwrap();
+    }
+    println!("{}", share_number.lock().unwrap());
+}
+``` -->
 
 ---
 
@@ -945,6 +988,42 @@ Rustでは**起きない**
 
 Mutexを使用するとデッドロックを起こすことがある
 // todo: 図解
+
+---
+
+## パッケージマネージャーCargo
+
+---
+
+## 用語説明(in Rust)
+
+### 変数関係
+
+* 変数束縛
+    他の言語でいうところの変数
+    基本はイミュータブルである
+* イミュータブル
+    変更不可な変数 ≒ 他の言語の`ReadOnly`
+    `const`とは別物(`const`はインライン化される)
+* ミュータブル
+    変更可能な変数
+    `let mut`で宣言する
+* シャドーイング
+
+---
+
+### 型関係
+
+* 値型
+    変数束縛が直接値を持っている型
+    スタックメモリに値が格納されている
+* 参照型
+    変数束縛がヒープメモリ上の実体への参照を持っている型
+    実体はヒープメモリに格納されている
+* プリミティブ型
+    Rustが本体で提供している機能([stdクレート](https://doc.rust-lang.org/std/index.html)の[プリミティブ型](https://doc.rust-lang.org/std/index.html#primitives))
+    ユーザー定義以外の値型が該当する(はず)
+    String型等参照型は、プリミティブ型ではない
 
 ---
 
@@ -978,4 +1057,5 @@ pub extern fn call_rust(){
 ### SIMD
 
 基本リリースコンパイルでSIMD化される
-もっと速度が欲しい場合// todo: 追記
+もっと速度が欲しい場合使えます。
+時間がなかったので省略
