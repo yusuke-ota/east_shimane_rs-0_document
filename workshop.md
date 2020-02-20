@@ -640,13 +640,15 @@ fn compare_str_lenght<'a>(a: &'a str, b: &'a str) -> &'a str{
 
 `Rc<T>`で循環参照を行うとメモリリークする
 
+//todo: 追記
+
 ---
 
 ## 基本構文
 
 ### if
 
-if **真/偽** { }
+if **bool型** { }
 
 ```rust
 fn main(){
@@ -903,8 +905,6 @@ impl AreaCalculable for Circle {// 省略
 
 ### 並列、並行処理
 
-#### 簡単な例
-
 ```rust
 use std::thread;
 fn main(){
@@ -913,7 +913,6 @@ fn main(){
         println!("{:?}", vec4);
         vec4　// vec4を返さないとこのスレッド内でvec4が解放される
     });
-
     // ここでスレッドから帰ってきたvec4の所有権を受け取る
     match palarell_handle.join(){ // .join()でスレッドの終了を待つ
         Ok(vec4) => println!("{:?}", vec4), // 無事、中身を取り出すことができる
@@ -951,28 +950,16 @@ async fn print_message_async(message: &str){
 
 [Arc<Mutex<T>>](https://doc.rust-jp.rs/book/second-edition/ch16-03-shared-state.html), [mpsc](https://doc.rust-jp.rs/book/second-edition/ch16-02-message-passing.html)を使う
 
+[Arc<Mutex<T>>サンプル](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=fca10143505ae79aeb03adedbc42310d)
 
-<!-- ```rust
-// Arc<Mutex<T>>
-use std::sync::{Mutex, Arc};
-use std::thread;
-fn main(){
-    let share_number = Arc::new(Mutex::new(0));
-    let mut handles = vec![];
-    for index in 0..10{
-        let share_number = Arc::clone(&share_number);
-        let handle = thread::spawn(move || {
-            let mut num = share_number.lock().unwrap();
-            *num += index;
-        });
-        handles.push(handle);
-    }
-    for handle in handles{
-        handle.join().unwrap();
-    }
-    println!("{}", share_number.lock().unwrap());
-}
-``` -->
+[mpscサンプル](todo: コード作成)
+
+#### アトミック性
+
+Arc: Atomic Reference Counted
+
+データの書き換え途中が外部から観測されない
+書き換え工程は オールorナッシング
 
 ---
 
@@ -1024,6 +1011,7 @@ Mutexを使用するとデッドロックを起こすことがある
     Rustが本体で提供している機能([stdクレート](https://doc.rust-lang.org/std/index.html)の[プリミティブ型](https://doc.rust-lang.org/std/index.html#primitives))
     ユーザー定義以外の値型が該当する(はず)
     String型等参照型は、プリミティブ型ではない
+    (Rust公式が提供しているユーザー定義型)
 
 ---
 
