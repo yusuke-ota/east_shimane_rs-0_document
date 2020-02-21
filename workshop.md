@@ -388,19 +388,20 @@ Rustは
 **固定長**か**可変長**かで動作が変わる
 
 ```rust
-// [i32; 5]型は固定長(= 変数はスタック領域)
-let fixed_array = [0,1,2,3,4];
-let array = fixed_array;
-// OK: fixed_arrayはarrayにコピーされる
-assert_eq!(fixed_array, array);
+fn main(){
+    let fixed_array = [0,1,2,3,4]; // [i32; 5]型は固定長(= 変数はスタック領域)
+    let array = fixed_array;
+    assert_eq!(fixed_array, array); // OK: fixed_arrayはarrayにコピーされる
+}
 ```
 
 ```rust
-// Vec<i32>型は可変長(= 変数の本体はヒープ領域)
-let variable_array = vec![0,1,2,3,4];
-let array = variable_array;
-// compile error: variable_arrayの中身はarrayに移される
-// assert_eq!(variable_array, array);
+fn main(){
+    let variable_array = vec![0,1,2,3,4]; // Vec<i32>型は可変長(= 変数の本体はヒープ領域)
+    let array = variable_array;
+    // compile error: variable_arrayの中身はarrayに移される
+    // assert_eq!(variable_array, array);
+}
 ```
 
 ---
@@ -613,7 +614,7 @@ fn main(){
 ```rust
 // compile error: 返り値がいつまで使われるのか分からない
 fn compare_str_lenght(a: &str, b: &str) -> &str{
-    if a.len() >= b.len()　{
+    if a.len() >= b.len() {
         a
     } else {
         b
@@ -819,12 +820,12 @@ class Vector2 {
 struct StructA { /* 構造体 */ }
 
 impl TraitA for StructA{
-    fn functionA() { /* 関数 */ }
+    fn function_a() { /* 関数 */ }
 }
 
 impl TraitB for StructA{ // 複数のトレイトを組み込むことも可
-    fn functionB() { /* 関数 */ }
-    fn functionC() { /* 関数 */ }
+    fn function_b() { /* 関数 */ }
+    fn function_c() { /* 関数 */ }
 }
 ```
 
@@ -909,12 +910,12 @@ impl AreaCalculable for Circle {// 省略
 use std::thread;
 fn main(){
     let vec4 = vec![0, 1, 2, 3];
-    let palarell_handle = thread::spawn(move || { // vec4がmoveする
+    let parallel_handle = thread::spawn(move || { // vec4がmoveする
         println!("{:?}", vec4);
-        vec4　// vec4を返さないとこのスレッド内でvec4が解放される
+        vec4 // vec4を返さないとこのスレッド内でvec4が解放される
     });
     // ここでスレッドから帰ってきたvec4の所有権を受け取る
-    match palarell_handle.join(){ // .join()でスレッドの終了を待つ
+    match parallel_handle.join(){ // .join()でスレッドの終了を待つ
         Ok(vec4) => println!("{:?}", vec4), // 無事、中身を取り出すことができる
         Err(e) => println!("{:?}", e), // スレッド内でエラーが起こることもある
     };
@@ -931,16 +932,29 @@ fn main(){
 tokio: 非同期で現在よく使われている(らしい)
 async-std: stdをそのまま置き換えられる(らしい) 開発中
 
+---
+
+#### async-stdサンプル
+
 ```rust
-use tokio; // 0.2.11
-#[tokio::main]
+use std::time::Duration;
+use async_std::task; // async-std = {version = "1.5.0", features = ["attributes"]}
+#[async_std::main]
 async fn main() {
-    let handler = print_message_async("message async"); // 返り値がある場合は、handlerに代入される
-    println!("message main");
-    handler.await; // 完了待ち and 結果取得
+    let handle = count_up_async(1);
+    let handle2 = count_up_async(2);
+    // println!("{}", handle.await); // handler駆動開始 1:1モデル
+    // println!("{}", handle2.await); // handler2駆動開始 1:1モデル
+    futures::join!(handle, handle2); // 並行駆動開始 n:1モデル
+    println!("Main thread finish!");
 }
-async fn print_message_async(message: &str){
-    println!("{}", message);
+async fn count_up_async(sleep_time: u64) -> String {
+    for counter in 1..10{
+        println!("counter is {}", counter);
+        println!("{:?}", task::current().id());
+        task::sleep(Duration::from_secs(sleep_time)).await;
+    }
+    "Finish".to_string()
 }
 ```
 
@@ -1029,10 +1043,10 @@ C#はdllimportで呼んで
 
 ### FFI使い方
 
-関数の前に`[no_mangle]`をつける
+関数の前に`#[no_mangle]`をつける
 
 ```rust
-[no_mangle]
+#[no_mangle]
 pub extern fn call_rust(){
     println!("this is Rust!!");
 }
