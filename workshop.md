@@ -46,8 +46,8 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 
 ### (希望があれば)プラスα
 
-* パッケージマネージャーCargo
-* 並列,並行,非同期 (async/awaitよくわからん)
+* パッケージマネージャーCargo(使って慣れよう)
+* 並列,並行,非同期
 * 用語説明 (途中まで)
 * FFI (間に合わない)
 
@@ -698,8 +698,8 @@ fn main() {
 
 ### loop, while
 
-loop: 無限ループ
-while: 条件付きループ
+loop {}: 無限ループ
+while **bool型** {}: 条件付きループ
 
 ```rust
 fn main(){
@@ -718,14 +718,17 @@ fn main(){
 
 ---
 
-### for
+### for, map
 
 ```rust
 fn main() {
-    let valiable_array = vec![0, 1, 2, 3, 4];
-    for value in &valiable_array {
+    let valuable_array = vec![0, 1, 2, 3, 4];
+    // for
+    for value in &valuable_array {
         println!("{}", value);
     }
+    // map
+    valuable_array.iter().map(move|value| println!("{}", value));
 }
 ```
 
@@ -848,7 +851,7 @@ impl TraitB for StructA{ // 複数のトレイトを組み込むことも可
 ### new、halfメソッド実装例
 
 ```rust
-struct Vector2 { /* 省略 */ }
+struct Vector2 { x:f64, y:f64 }
 impl Vector2 { // Vector2に実装する
     // 別にメソッド名はnewでなくても良い buildでもhogehogeでも
     fn new(x_pos: f64, y_pos: f64) -> Self{
@@ -903,6 +906,19 @@ impl AreaCalculable for Circle {// 省略
 
 ---
 
+## パッケージマネージャーCargo
+
+ざっくりいうと、
+
+* パッケージマネージャー
+* ビルドツール
+* テストツール
+
+がまとまったもの。
+もちろんGitもついてくる。
+
+---
+
 ## 並列,並行,非同期
 
 ![h:13cm](pictures/非同期比較.png)
@@ -912,7 +928,7 @@ impl AreaCalculable for Circle {// 省略
 ### 並列と並行の境
 
 並列処理が並行処理になる境
-<= 論理プロセッサー数
+論理プロセッサー数 < スレッド数
 
 並列処理ライブラリRayonとか良さげ
 
@@ -1054,20 +1070,22 @@ Rustでは**起きない**
 ### デッドロック
 
 Mutexを使用するとデッドロックを起こすことがある
-// TODO: 図解
 
----
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+fn main(){
+    let lock = Arc::new(Mutex::new("中身"));
+    let share_lock = Arc::clone(&lock); // Mutex("中身")への参照をコピー
+    let message = lock.lock().unwrap(); // messageが"中身"を取得、ロックをかける
 
-## パッケージマネージャーCargo
+    let handle = thread::spawn(move ||{println!("{}", *share_lock.lock().unwrap())});
+    println!("{}", *message);
+    handle.join().unwrap(); // messageが"中身"を占有中なので、処理できない
+} // messageが"中身"を手放す、ロックが外れる
+```
 
-ざっくりいうと、
-
-* パッケージマネージャー
-* ビルドツール
-* テストツール
-
-がまとまったもの。
-もちろんGitもついてくる。
+参考:[kubo39's blog Rustのlockとスコープのはなし](https://kubo39.hatenablog.com/entry/2017/05/13/Rust%E3%81%AElock%E3%81%A8%E3%82%B9%E3%82%B3%E3%83%BC%E3%83%97%E3%81%AE%E3%81%AF%E3%81%AA%E3%81%97)
 
 ---
 
