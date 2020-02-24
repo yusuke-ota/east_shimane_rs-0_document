@@ -638,11 +638,11 @@ fn compare_str_lenght<'a>(a: &'a str, b: &'a str) -> &'a str{
 }
 ```
 
----
+<!-- ---
 
 ### 図解 変数と参照のライフタイム注釈
 
-// TODO: 図の作成
+// TODO: 図の作成 -->
 
 ---
 
