@@ -1,4 +1,4 @@
-fn practice() {
+fn main() {
     // let, mut, {}を追加して、Runが通るようにしてください
     let value = "変数1";
     assert_eq!(value, "変数1");
