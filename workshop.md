@@ -46,10 +46,10 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 
 ### (希望があれば)プラスα
 
+* パッケージマネージャーCargo(使って慣れよう)
 * 並列,並行,非同期
-* パッケージマネージャーCargo
-* 用語説明
-* FFI
+* 用語説明 (途中まで)
+* FFI (間に合わない)
 
 ---
 
@@ -59,7 +59,7 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 
 * GCがないから、速い
 * GCがないから、OSが無くても動く
-* データ競合がないから非同期処理が安心して書ける
+* データ競合がないから並列処理が安心して書ける
 * FFIでRubyから簡単に呼べる
 
 ---
@@ -71,7 +71,7 @@ Rustの独特な部分をざくっと説明して、入門コストを下げる�
 * 所有権って何?(独自の概念)
 * クラスのがない(structにメソッドを追加していく)
 * (オブジェクト指向の人は) 関数型
-* 非同期関連(not並列、並行)が未成熟
+* async関連(not並列、並行)が未成熟
 
 ---
 
@@ -171,51 +171,45 @@ fn main(){
 
 #### ミュータブル mut 1
 
-![h:13cm ミュータブル mut 1](./pictures/変数/mut1.jpg)
+![h:12cm ミュータブル mut 1](./pictures/mut1.png)
 
 ---
 
 #### ミュータブル mut 2
 
-![h:13cm ミュータブル mut 2](./pictures/変数/mut2.jpg)
+![h:13cm ミュータブル mut 2](./pictures/mut2.png)
 
 ---
 
 #### ミュータブル mut 3
 
-![h:13cm ミュータブル mut 3](./pictures/変数/mut3.jpg)
+![h:13cm ミュータブル mut 3](./pictures/mut3.png)
 
 ---
 
 #### シャドーイング let 1
 
-![h:13cm シャドーイング let 1](./pictures/変数/let1.jpg)
+![h:13cm シャドーイング let 1](./pictures/let1.png)
 
 ---
 
 #### シャドーイング let 2
 
-![h:13cm シャドーイング let 2](./pictures/変数/let2.jpg)
+![h:13cm シャドーイング let 2](./pictures/let2.png)
 
 ---
 
 #### シャドーイング let 3
 
-![h:13cm シャドーイング let 3](./pictures/変数/let3.jpg)
-
----
-
-#### シャドーイング let 4
-
-![h:13cm シャドーイング let 4](./pictures/変数/let4.jpg)
+![h:13cm シャドーイング let 3](./pictures/let3.png)
 
 ---
 
 #### どんな違いがあるのか(コード)
 
-[コメントでスタックの状況を説明しながら代入とシャドーイングを行うコード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=413eae0e9edfd05b7732eb1a99d79e0a)
+[代入とシャドーイングを行う](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=413eae0e9edfd05b7732eb1a99d79e0a)
 
-[ポインタを見ながら動作の違いを説明するコード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=352946a094ed832632594292c6aa31d8)
+[ポインタから見る動作の違い](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=352946a094ed832632594292c6aa31d8)
 
 ---
 
@@ -235,15 +229,17 @@ fn main(){
 
 Rustは型によって変数作成時の動きが違う
 
-1. **固定長型**の変数はメモリの**スタック**領域に作成　(整数型や、固定長文字列など)
-2. **可変長型**の変数はメモリの**ヒープ**領域に作成　(可変長文字列や可変長配列など)
+1. **固定長型**の変数はメモリの**スタック**領域に作成 (整数型や、固定長文字列など)
+2. **可変長型**の変数はメモリの**ヒープ**領域に作成 (可変長文字列や可変長配列など)
 
 ---
 
 ### 一覧(固定長？可変長？)
 
-可変長の配列とそれ以外でメモリの使い方が違う  
+固定長(値型)と可変長の配列(参照型)でメモリの使い方が違う
 -> **代入時の動作が違う**
+
+![h:10cm](pictures/値型と参照型のメモリ.png)
 
 ---
 
@@ -348,7 +344,7 @@ fn main(){
 以下の実装を行う場合にはunsafeブロックで囲む必要がある
 
 * **生ポインタを参照外しする**
-  生ポインタ: Cでいうポインタ
+  生ポインタ: Cでいうポインタ、メモリのアドレスを表す
   参照外し: ポインタの参照先の値を直接読み取ること
 * **可変のグローバル変数にアクセスしたり変更する**
 * unsafeな関数やメソッドを呼ぶ
@@ -406,44 +402,54 @@ fn main(){
 
 ---
 
-#### 図解 所有権1
+#### 図解 コピーセマンティクス
 
-<!-- 固定長 TODO: 図を追加 -->
 コードを書いている時点で、どのくらいメモリを使うかわかる
--> 変数の中身(値)をコピーしても、想定外に時間がかかるなんてことないよね？
+-> 変数の中身(値)をコピーする際のコストがわかる
 -> 値がコピーされる
 
-スタック： コピー(copy)
+![h:8cm](pictures/所有権stack.png)
 
 ---
 
-#### 図解 所有権2
+#### 図解 ムーブセマンティクス
 
-<!-- 可変長 TODO: 図を追加 -->
 コードを書いている時点で、どのくらいメモリを使うかわからない
--> その変数の中身(値)が動画だったら、コピーに時間がかかるだろう
+-> その変数の中身(値)が動画だったら、コピーに時間がかかる
 -> ヒープのアドレスがコピーされる(シャローコピー)
--> 参照カウンターはGCがいるから、コピー元は使用禁止ね
+-> 参照カウンターは管理コストがかかるから、コピー元は使用禁止
 
 ヒープ： ムーブ(move)
 
 ---
 
-#### 図解 所有権3
+##### メモリ開放
 
-<!-- 可変長 TODO: 図を追加 -->
+![h:12cm](pictures/メモリ解放.png)
 
 ---
 
-#### 図解 所有権4
+##### 同時参照
+
+参照カウンターが必要(一般的な言語はGCで用意している)
+![h:12cm](pictures/同時参照.png)
+
+---
+
+#### ムーブ
+
+古い方の変数を使えなくすれば問題ない
+![h:12cm](pictures/ムーブセマンティクス.png)
+
+---
+
+#### 図解 ムーブセマンティクスまとめ
 
 一つのヒープ上の値に対して、
-複数のスタック上の変数を割り当てると
-GCが必要になる
+複数のスタック上の変数を割り当てることはできない。
+Rustは変数と値が**常に1:1対応**
 
-ヒープ： ムーブ(move)
-
-[所有権で解放後の変数へのアクセスを制限していることを説明するコード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=99c3f2da10dbca4c3c7cf1c7d97491b0)
+[所有権で解放後の変数へのアクセスを制限している](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=99c3f2da10dbca4c3c7cf1c7d97491b0)
 
 ---
 
@@ -495,7 +501,7 @@ public class C {
 読み取りだけなら、いくらでも作れる
 (書き込みが無いなら、データ競合は考えなくても良い)
 
-<!-- TODO:図を追加 -->
+![h:8cm](pictures/参照.png)
 
 ---
 
@@ -569,7 +575,9 @@ UTF-8バイト列`[u8; n]`, `Vec<u8>`
 
 #### 図解str
 
-// todo: 図解
+ざっくりいうと、範囲で参照を取るためのもの
+
+![h:9cm](pictures/str.png)
 
 [mut Stringのヒープをstrからいじったらどうなるのか](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=c1951925718bfe7260f315f706077830)
 
@@ -612,7 +620,7 @@ fn main(){
 ### ライフタイム注釈
 
 ```rust
-// compile error: 返り値がいつまで使われるのか分からない
+// compile error: a,bどちらの参照を返せばいいのかわからない
 fn compare_str_lenght(a: &str, b: &str) -> &str{
     if a.len() >= b.len() {
         a
@@ -623,25 +631,31 @@ fn compare_str_lenght(a: &str, b: &str) -> &str{
 ```
 
 ```rust
-// OK: 返り値は'a(a,b)と同じだけの生存しなければならない
+// OK: <'a>のタグがついた変数(a,b)を返すよ
+// ただし、返り値が<'a>より長生きしないようチェックしてね
 fn compare_str_lenght<'a>(a: &'a str, b: &'a str) -> &'a str{
     // 省略
 }
 ```
 
----
+<!-- ---
 
 ### 図解 変数と参照のライフタイム注釈
 
-// todo: 図の作成
+// TODO: 図の作成 -->
 
 ---
 
 ### メモリリークはあります
 
-`Rc<T>`で循環参照を行うとメモリリークする
+`Rc<T>`や`Arc<T>`で**循環参照**を行うとメモリリークする
 
-//todo: 追記
+Rc: Reference Counted
+参照カウンターを実装した型、複数のヒープへの参照が持てる
+
+![h:6cm](pictures/Rc.png)
+
+詳しくは[プログラミング言語 Rust, 2nd Edition 日本語訳](https://doc.rust-jp.rs/book/second-edition/ch15-06-reference-cycles.html)
 
 ---
 
@@ -684,8 +698,8 @@ fn main() {
 
 ### loop, while
 
-loop: 無限ループ
-while: 条件付きループ
+loop {}: 無限ループ
+while **bool型** {}: 条件付きループ
 
 ```rust
 fn main(){
@@ -704,14 +718,17 @@ fn main(){
 
 ---
 
-### for
+### for, map
 
 ```rust
 fn main() {
-    let valiable_array = vec![0, 1, 2, 3, 4];
-    for value in &valiable_array {
+    let valuable_array = vec![0, 1, 2, 3, 4];
+    // for
+    for value in &valuable_array {
         println!("{}", value);
     }
+    // map
+    valuable_array.iter().map(move|value| println!("{}", value));
 }
 ```
 
@@ -764,8 +781,8 @@ Result型やOption型はそのままでは使えない
 よく例で使われるunwrap()は非推奨
 
 ```rust
+use std::convert::TryFrom;
 fn main(){
-    use std::convert::TryFrom;
     let value = u32::try_from(-1); // キャストは失敗するかもしれないのでResult型
     match value{
         Ok(x) => println!("{}", x),
@@ -834,15 +851,13 @@ impl TraitB for StructA{ // 複数のトレイトを組み込むことも可
 ### new、halfメソッド実装例
 
 ```rust
-struct Vector2 { /* 省略 */ }
-impl Vector2 { // Vector2に組み込むという意味
+struct Vector2 { x:f64, y:f64 }
+impl Vector2 { // Vector2に実装する
     // 別にメソッド名はnewでなくても良い buildでもhogehogeでも
     fn new(x_pos: f64, y_pos: f64) -> Self{
-        Self {
-            x: x_pos,
-            y: y_pos,
-        }
+        Self { x: x_pos, y: y_pos, }
     }
+
     // 各要素を半分にする
     fn half(&mut self) {
         self.x /= 2.0;
@@ -850,6 +865,8 @@ impl Vector2 { // Vector2に組み込むという意味
     }
 }
 ```
+
+[Rust Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=3eacd02f192c8c6b3d942c6bd1c47123)
 
 ---
 
@@ -885,20 +902,33 @@ impl AreaCalculable for Vector2 {
 impl AreaCalculable for Circle {// 省略
 ```
 
-[全コード](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=79688fcc8d8d56423cd074e6a3110612)
+[Rust Playground](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=79688fcc8d8d56423cd074e6a3110612)
+
+---
+
+## パッケージマネージャーCargo
+
+ざっくりいうと、
+
+* パッケージマネージャー
+* ビルドツール
+* テストツール
+
+がまとまったもの。
+もちろんGitもついてくる。
 
 ---
 
 ## 並列,並行,非同期
 
-// todo: 図挿入
+![h:13cm](pictures/非同期比較.png)
 
 ---
 
 ### 並列と並行の境
 
 並列処理が並行処理になる境
-<= 論理プロセッサー数
+論理プロセッサー数 < スレッド数
 
 並列処理ライブラリRayonとか良さげ
 
@@ -921,6 +951,8 @@ fn main(){
     };
 }
 ```
+
+1スレッドやんけ
 
 ---
 
@@ -950,9 +982,59 @@ async fn main() {
 }
 async fn count_up_async(sleep_time: u64) -> String {
     for counter in 1..10{
-        println!("counter is {}", counter);
-        println!("{:?}", task::current().id());
+        println!("counter is {} {:?}", counter, task::current().id());
         task::sleep(Duration::from_secs(sleep_time)).await;
+    }
+    "Finish".to_string()
+}
+```
+
+---
+
+#### 今度こそ非同期処理
+
+```rust
+/* 省略 */
+async fn count_up_async(sleep_time: u64) -> String {
+    let mut async_tasks = vec![];
+    for counter in 1..10{
+        async_tasks.push(
+            task::spawn(async move {
+                println!("counter is {} {:?}", counter, task::current().id());
+                task::sleep(Duration::from_secs(sleep_time)).await;
+            }));
+    }
+    for async_task in async_tasks { async_task.await };
+    "Finish".to_string()
+}
+```
+
+[全文 注:Rust Playgroundは非同期の実行に向いていません](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=18a45aa264cf33dea6fdf0a0ce93e96d)
+
+---
+
+#### threadを使った非同期処理でお茶を濁す
+
+```rust
+use std::thread;
+use std::time::Duration;
+fn main(){
+    // 別スレッドに処理を丸投げ = 非同期
+    let handle = thread::spawn(||{
+        println!("sub thread");
+        let sub_thread_result = count_up(1);
+        sub_thread_result // 返り値
+    });
+    // 上とほぼ同じ内容
+    println!("main thread");
+    println!("main thread: {}", count_up(2));
+    // 別スレッドの結果取得
+    println!("sub thread: {}", handle.join().unwrap_or("その時不思議なことが起こった".to_string()));
+}
+fn count_up(sleep_time: u64) -> String {
+    for counter in 1..5{
+        println ! ("counter is {}. {:?}", counter, thread::current().id());
+        thread::sleep(Duration::from_secs(sleep_time));
     }
     "Finish".to_string()
 }
@@ -964,9 +1046,11 @@ async fn count_up_async(sleep_time: u64) -> String {
 
 [Arc<Mutex<T>>](https://doc.rust-jp.rs/book/second-edition/ch16-03-shared-state.html), [mpsc](https://doc.rust-jp.rs/book/second-edition/ch16-02-message-passing.html)を使う
 
-[Arc<Mutex<T>>サンプル](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=fca10143505ae79aeb03adedbc42310d)
+[Arc<Mutex<T>>サンプル](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=d85c0ef94824f8ae4f8561568408e64e)
 
-[mpscサンプル](todo: コード作成)
+[mpscサンプル](TODO: コード作成)
+
+---
 
 #### アトミック性
 
@@ -981,18 +1065,29 @@ Arc: Atomic Reference Counted
 
 Rustでは**起きない**
 
-// todo: 図解
+![h:11cm](pictures/データ競合.png)
 
 ---
 
 ### デッドロック
 
 Mutexを使用するとデッドロックを起こすことがある
-// todo: 図解
 
----
+```rust
+use std::sync::{Arc, Mutex};
+use std::thread;
+fn main(){
+    let lock = Arc::new(Mutex::new("中身"));
+    let share_lock = Arc::clone(&lock); // Mutex("中身")への参照をコピー
+    let message = lock.lock().unwrap(); // messageが"中身"を取得、ロックをかける
 
-## パッケージマネージャーCargo
+    let handle = thread::spawn(move ||{println!("{}", *share_lock.lock().unwrap())});
+    println!("{}", *message);
+    handle.join().unwrap(); // messageが"中身"を占有中なので、処理できない
+} // messageが"中身"を手放す、ロックが外れる
+```
+
+参考:[kubo39's blog Rustのlockとスコープのはなし](https://kubo39.hatenablog.com/entry/2017/05/13/Rust%E3%81%AElock%E3%81%A8%E3%82%B9%E3%82%B3%E3%83%BC%E3%83%97%E3%81%AE%E3%81%AF%E3%81%AA%E3%81%97)
 
 ---
 
@@ -1043,7 +1138,7 @@ C#はdllimportで呼んで
 
 ### FFI使い方
 
-関数の前に`#[no_mangle]`をつける
+関数の前に`#[no_mangle]`をつけて、dllにビルド
 
 ```rust
 #[no_mangle]
@@ -1052,12 +1147,5 @@ pub extern fn call_rust(){
 }
 ```
 
----
-
-## I need more speed
-
-### SIMD
-
-基本リリースコンパイルでSIMD化される
-もっと速度が欲しい場合使えます。
-時間がなかったので省略
+他の言語からdllを介して、同じ関数名で呼べるようになる
+詳しくは[こちら](https://doc.rust-jp.rs/the-rust-programming-language-ja/1.6/book/rust-inside-other-languages.html)
