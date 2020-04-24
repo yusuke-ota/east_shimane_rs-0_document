@@ -1044,7 +1044,7 @@ fn count_up(sleep_time: u64) -> String {
 
 ### スレッド間のデータ共有
 
-[Arc<Mutex<T>>](https://doc.rust-jp.rs/book/second-edition/ch16-03-shared-state.html), [mpsc](https://doc.rust-jp.rs/book/second-edition/ch16-02-message-passing.html)を使う
+[Arc<Mutex<T>>](https://doc.rust-jp.rs/book/second-edition/ch16-03-shared-state.html), [mpsc](https://doc.rust-jp.rs/book/second-edition/ch16-02-message-passing.html) を使う
 
 [Arc<Mutex<T>>サンプル](https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=d85c0ef94824f8ae4f8561568408e64e)
 
