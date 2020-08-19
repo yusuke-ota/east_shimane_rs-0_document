@@ -2,6 +2,8 @@
 
 east_shimane.rs#0のRust初心者向けのプレゼン資料です。
 
+[workshop.md](https://github.com/yusuke-ota/east_shimane_rs-0_document/blob/master/workshop.md)を見てください。
+
 ## 依存関係
 
 * Marp for VSCode
